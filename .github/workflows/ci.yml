@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Lets anyone re-verify the current tree on demand without pushing a commit.
+  workflow_dispatch:
+
+jobs:
+  # The honest substitute for a human opening the project: prove the version-pinned
+  # remote package genuinely resolves from GitHub and the app compiles against it.
+  # The generic Simulator destination deliberately avoids depending on any specific
+  # simulator runtime existing on the runner image.
+  build:
+    name: macOS · resolve remote package + build for generic iOS Simulator
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve remote package dependency
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project Demo.xcodeproj \
+            -scheme Demo
+      - name: Build for iOS Simulator
+        run: |
+          xcodebuild build \
+            -project Demo.xcodeproj \
+            -scheme Demo \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
